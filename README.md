@@ -13,7 +13,7 @@
   ```
 - install node modules
   ```javacript
-  $ npm install --save express body-parser mongodb
+  $ npm install --save express body-parser mongodb mongoose
   ```
 - create an `index.js` file and set up the express application
 - in `index.js`
@@ -43,6 +43,10 @@
   heroku config:set MONGODB_URI=mongodb://your-user:your-pass@host:port/db-name
   ```
   - can now access string with variable `process.env.MONGODB_URI`
+- to connect Heroku to mLab - use addons
+  ```
+  $ heroku addons:create mongolab
+  ```
   
   ## Database Connection 
   - create db variable in the global scope for reuse, this way the connection pool so that the connection can be shared amongst route handlers
@@ -74,6 +78,9 @@
 - usually these are all in seperate files, but for this simple project we'll put them all in 1
 ### Create the Schema 
 ```javacript
+const mongoose = require('mongoose')
+const Schema = mongoose.Schema
+
 const UserSchema = new userSchema({
     firstname: String,
     lastname: String
@@ -84,12 +91,36 @@ const UserSchema = new userSchema({
 const User = mongoose.model('user', UserSchema)
 ```
 ### Add Routing 
-```javacript
-app.get('/', (req, res) => {
-  User.find({})
-    .then(users => res.send(users)) 
-});
-```
+- read
+  ```javacript
+  app.get('/', (req, res) => {
+    User.find({})
+      .then(users => res.send(users)) 
+  });
+  ```
+- create
+  ```javacript
+  app.post('/api/new', () => {
+    User.create(req.body)
+      .then(user => res.send(user))
+  })
+  ```
+- delete
+  ```javascript
+  app.delete('/api/:id', () => {
+    User.findByIdAndRemove({ _id: id })
+      .then(user => res.send(user))
+  })
+  ```
+- edit
+  ```javascript
+  app.put('/api/:id', () => {
+    User.findOneAndUpdate({ _id: id}, req.body)
+      .then(() => User.findById({ _id: id }))
+      .then(user => res.send(user))
+  })
+  ```
+
 
 ## Deployment and Testing of the Deployment
 - Deploy the code
@@ -104,7 +135,7 @@ app.get('/', (req, res) => {
   ```
 - use cURL to issue a post request
   ```
-  curl -H "Content-Type: application/json" -d '{"firstName":"Jane", "lastName": "Lane"}' http://your-app-name.herokuapp.com/contacts
+  $ curl -H "Content-Type: application/json" -d '{"firstname":"Jane", "lastname": "Lane"}' http://your-app-name.herokuapp.com/contacts
   ```
 - see if data is updated on mLab url
   ```
