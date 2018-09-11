@@ -7,7 +7,25 @@
   ```javascript
   $ git init
   ```
-- create a basic express app and server
+- initialize a `package.json` for the project
+  ```javacript
+  $ npm init
+  ```
+- install node modules
+  ```javacript
+  $ npm install --save express body-parser mongodb
+  ```
+- create an `index.js` file and set up the express application
+- in `index.js`
+  ```javacript
+  var express = require("express");
+  var bodyParser = require("body-parser");
+  var mongodb = require("mongodb");
+
+  var app = express();
+
+  app.use(bodyParser.json())
+  ```
 ### Heroku Setup
 - create the heroku app
   ```javascript
@@ -16,7 +34,7 @@
   - generates a new git remote repository associated with your app
   - generates a random name to be associated with the app
 ### Database Setup
-- in *mLab* - Create a new single-node Sandbox MongoDB database in US EAST
+- in *mLab* - (+ Create New) - Create a new single-node Sandbox MongoDB database in US EAST
   - click on the newly created db 
   - create a new user and password 
 
@@ -28,7 +46,11 @@
   
   ## Database Connection 
   - create db variable in the global scope for reuse, this way the connection pool so that the connection can be shared amongst route handlers
+- in `app.js`
     ```javascript
+    /* ... */
+    app.use(bodyParser.json())
+    
     var db;
     ```
   - connect to the DB, assign the database object to the `db` variable and then start the server after
@@ -48,6 +70,27 @@
       
   })
   ```
+## DB Schema and Model and Routes
+- usually these are all in seperate files, but for this simple project we'll put them all in 1
+### Create the Schema 
+```javacript
+const UserSchema = new userSchema({
+    firstname: String,
+    lastname: String
+})
+```
+### Create the Model
+```javacript
+const User = mongoose.model('user', UserSchema)
+```
+### Add Routing 
+```javacript
+app.get('/', (req, res) => {
+  User.find({})
+    .then(users => res.send(users)) 
+});
+```
+
 ## Deployment and Testing of the Deployment
 - Deploy the code
   ```
@@ -60,4 +103,11 @@
   $ heroku ps:scale web=1
   ```
 - use cURL to issue a post request
+  ```
+  curl -H "Content-Type: application/json" -d '{"firstName":"Jane", "lastName": "Lane"}' http://your-app-name.herokuapp.com/contacts
+  ```
+- see if data is updated on mLab url
+  ```
+   https://mlab.com/databases/your-db-name/collections/contacts
+  ```
 
